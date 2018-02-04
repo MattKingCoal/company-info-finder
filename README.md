@@ -1,1 +1,8 @@
-# company-info-finder
+- Takes a list of documents as input. Works with either SI or the full SiV
+- creates a connection to the ODS and gets the doc key.
+- Uses the doc key to get the company info for the document
+- Writes all HPI documents to an output file
+- Input file, output file, Environment and number of threads is configurable as args
+- Main class to run: com.match.ods.ci.CompanyFinder
+- Sample run args for main class [input.txt output.txt ITG 3]
+- DB connection string is not found here for obvious reasons
