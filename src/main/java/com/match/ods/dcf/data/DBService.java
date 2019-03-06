@@ -2,9 +2,9 @@ package com.match.ods.dcf.data;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import org.apache.log4j.Logger;
 
@@ -15,7 +15,7 @@ public class DBService {
 
     static Logger log = Logger.getLogger(DBService.class);
     private Connection conn;
-    private Statement statement;
+    private PreparedStatement ps1, ps2;
 
     public DBService(String environment) {
         try {
@@ -24,18 +24,20 @@ public class DBService {
              */
             switch (environment) {
                 case "PRO":
-                    conn = DriverManager.getConnection("");
+                    conn = DriverManager.getConnection("jdbc:oracle:thin:@gcu12709.austin.hp.com:1526/KMODSPC", "ods3",
+                            "ods3_20090916");
                     break;
                 default:
-                    conn = DriverManager.getConnection("");
+                    conn = DriverManager.getConnection("jdbc:oracle:thin:@gcu12007.austin.hp.com:1526/KMODSI", "ods3",
+                            "seeker_20111102");
             }
             if (conn == null) {
                 // TODO throw up
                 log.error("Connection could not be esatblished. Connection - " + conn);
                 System.exit(-1);
             }
-
-            statement = conn.createStatement();
+            ps1 = conn.prepareStatement(SqlQueries.MDPROPSELECTCOMPANYINFOBYDOCKY);
+            ps2 = conn.prepareStatement(SqlQueries.MDSELECTSTARBYDOCIDORDERBYVERSION);
             log.info("ODS Connection created");
         } catch (SQLException e) {
             log.error(e.getMessage());
@@ -46,8 +48,8 @@ public class DBService {
     public String getCompanyInfoByDocKey(Integer key) throws CompanyNotFoundException {
         log.debug("Searching for companyInfo for key " + key);
         try {
-            ResultSet rs = statement.executeQuery(
-                    "select ctrl_vcblry_node_ky from md_prop where prop_ky = 2061 and md_doc_ky = " + key);
+            ps1.setInt(1, key);
+            ResultSet rs = ps1.executeQuery();
             if (rs.next()) {
                 int val = rs.getInt(1);
                 if (val == 41002) {
@@ -71,7 +73,8 @@ public class DBService {
         log.debug("Searching for doc_ky for: " + docid);
         ResultSet rs = null;
         try {
-            rs = statement.executeQuery(("select * from MD where doc_id like '" + docid + "%' order by VERS_NR desc"));
+            ps2.setString(1, docid + "%");
+            rs = ps2.executeQuery();
             if (rs.next()) {
                 Integer i = rs.getInt(1);
                 log.debug("Found key: " + i + " for: " + docid);
@@ -94,8 +97,10 @@ public class DBService {
 
     public void close() {
         try {
-            if (statement != null)
-                statement.close();
+            if (ps1 != null)
+                ps1.close();
+            if (ps2 != null)
+                ps2.close();
             if (conn != null)
                 conn.close();
             log.info("DB Resources released");

@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -21,7 +20,7 @@ public class CompanyFinder {
 
     static Logger log = Logger.getLogger(CompanyFinder.class);
     private static List<Worker> workers = new ArrayList<>();
-    private static Queue<String> docIdQueue = new ConcurrentLinkedQueue<>();
+    private static ConcurrentLinkedQueue<String> docIdQueue = new ConcurrentLinkedQueue<>();
 
     public static void main(String[] args) throws IOException, InterruptedException {
         log.info("Starting............");
@@ -39,21 +38,21 @@ public class CompanyFinder {
         log.info("File read, list created, we have " + ids.size() + " docs to search for");
         docIdQueue.addAll(ids);
 
-        log.info("Creating and starting threads");
+        log.info("Creating threads.....");
 
         for (int i = 0; i < numWorkers; i++) {
             Worker worker = new Worker("CI" + i, new DBService(env), docIdQueue);
             workers.add(worker);
+        }
+
+        log.info("Starting threads.....");
+        for (Worker worker : workers) {
             worker.start();
         }
 
-        int remaining;
         while (!areWorkersFinished()) {
             log.info("Workers still chipping away, sleeping............");
-            synchronized (docIdQueue) {
-                remaining = docIdQueue.size();
-            }
-            log.info(String.format("%d docs in the queue", remaining));
+            log.info(String.format("%d docs in the queue", docIdQueue.size()));
             Thread.sleep(1000 * 10);
         }
         log.info("All workers finished");

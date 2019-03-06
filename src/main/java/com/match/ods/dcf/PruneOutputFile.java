@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 public class PruneOutputFile {
 
     public static void main(String[] args) throws IOException {
-        File in = new File("output", "FULLHPIList.txt");
+        File in = new File("output", "balls.txt");
         File out = new File("output", "final");
 
         BufferedReader reader = new BufferedReader(new FileReader(in));

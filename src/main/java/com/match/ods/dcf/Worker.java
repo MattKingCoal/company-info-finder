@@ -2,7 +2,7 @@ package com.match.ods.dcf;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.log4j.Logger;
 
@@ -15,15 +15,15 @@ public class Worker implements Runnable {
     static Logger log = Logger.getLogger(Worker.class);
 
     private DBService dbs;
-    private Queue<String> docIDQueue;
+    private ConcurrentLinkedQueue<String> docIDQueue;
     private List<Doc> docs = new ArrayList<>();
     private boolean completed = false;
     private Thread thread;
     private String name;
 
-    public Worker(String name, DBService dbs, Queue<String> docIDs) {
+    public Worker(String name, DBService dbs, ConcurrentLinkedQueue<String> docIDQueue) {
         this.dbs = dbs;
-        this.docIDQueue = docIDs;
+        this.docIDQueue = docIDQueue;
         this.name = name;
     }
 
